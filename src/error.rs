@@ -1,3 +1,4 @@
+use clap::error::ErrorKind;
 use inflector::Inflector;
 
 #[derive(Debug, thiserror::Error)]
@@ -19,19 +20,11 @@ pub enum ExecutionError {
 impl From<clap::Error> for ExecutionError {
     fn from(err: clap::Error) -> Self {
         match clap::Error::kind(&err) {
-            clap::ErrorKind::ValueValidation => {
-                if let Some(name) = err.info[0]
-                    .split_once('<')
-                    .and_then(|(_, suffix)| suffix.split_once('>'))
-                    .map(|(prefix, _)| prefix.to_sentence_case())
-                {
+            ErrorKind::ValueValidation => {
                     Self::ValidationError {
-                        name,
-                        message: err.info[2].clone(),
+                        name: "idk".to_string(),
+                        message: err.to_string()
                     }
-                } else {
-                    Self::NoValidationName
-                }
             }
             _ => Self::MatchError(err),
         }

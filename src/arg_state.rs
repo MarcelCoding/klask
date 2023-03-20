@@ -42,7 +42,7 @@ pub enum ArgKind {
 
 impl<'s> ArgState<'s> {
     pub fn new(arg: &Arg, localization: &'s Localization) -> Self {
-        let kind = if arg.is_takes_value_set() {
+        let kind = if arg.get_action().takes_values() {
             let mut default = arg
                 .get_default_values()
                 .iter()
@@ -50,13 +50,13 @@ impl<'s> ArgState<'s> {
 
             let possible = arg
                 .get_possible_values()
-                .unwrap_or_default()
                 .iter()
                 .map(|v| v.get_name().to_string())
                 .collect();
 
-            let multiple_values = arg.is_multiple_values_set();
-            let multiple_occurrences = arg.is_multiple_occurrences_set();
+            let a = arg.get_num_args().unwrap_or_default();
+            let multiple_values = a.min_values() != a.max_values() || 1 < a.min_values();
+            let multiple_occurrences = false ;//arg.is_multiple_occurrences_set();
 
             if multiple_occurrences | multiple_values {
                 ArgKind::MultipleStrings {
@@ -65,9 +65,8 @@ impl<'s> ArgState<'s> {
                     possible,
                     multiple_values,
                     multiple_occurrences,
-                    use_delimiter: arg.is_use_value_delimiter_set()
-                        | arg.is_require_value_delimiter_set(),
-                    req_delimiter: arg.is_require_value_delimiter_set(),
+                    use_delimiter: arg.get_value_delimiter().is_some(),
+                    req_delimiter: arg.get_value_delimiter().is_some(),
                     value_hint: arg.get_value_hint(),
                 }
             } else {
@@ -78,7 +77,7 @@ impl<'s> ArgState<'s> {
                     value_hint: arg.get_value_hint(),
                 }
             }
-        } else if arg.is_multiple_occurrences_set() {
+        } else if false /*arg.is_multiple_occurrences_set()*/ {
             ArgKind::Occurences(0)
         } else {
             ArgKind::Bool(false)
@@ -96,7 +95,7 @@ impl<'s> ArgState<'s> {
                 .or_else(|| arg.get_help().map(ToString::to_string)),
             optional: !arg.is_required_set(),
             use_equals: arg.is_require_equals_set(),
-            forbid_empty: arg.is_forbid_empty_values_set(),
+            forbid_empty: false, //arg.is_forbid_empty_values_set(),
             kind,
             validation_error: None,
             localization,
